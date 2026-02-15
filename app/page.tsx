@@ -256,7 +256,7 @@ export default function Home() {
           `📞 SĐT: ${parsed.phone}\n\n` +
           `Bộ phận kỹ thuật sẽ liên hệ lại với bạn sớm nhất có thể.\n\n` +
           `Mã yêu cầu: #${ticket.id.slice(-8)}\n\n` +
-          `Cảm ơn bạn đã tin tưởng GIHO! 🙏`
+          `Cảm ơn bạn đã đồng hành cùng GIHO Smarthome ! ❤️`
 
         setMessages(prev => [
           ...prev.slice(0, -1),
@@ -278,15 +278,19 @@ export default function Home() {
 
     // Handle "vẫn không được" or similar negative responses
     if (conversationState === 'ai_suggested') {
-      const negativeKeywords = ['không được', 'vẫn lỗi', 'vẫn bị', 'không khắc phục', 'không giải quyết', 'vẫn không', 'vẫn chưa']
+      const negativeKeywords = [
+        'không được', 'ko được', 'ko dc', 'k dc', 'k được',
+        'vẫn lỗi', 'vẫn bị', 'vẫn ko', 'vẫn k', 'vẫn không', 'vẫn chưa',
+        'không khắc phục', 'không giải quyết', 'chưa được', 'chưa dc'
+      ]
       const isNegativeResponse = negativeKeywords.some(keyword => userMsg.toLowerCase().includes(keyword))
 
       if (isNegativeResponse) {
-        // Ask for evidence (photo/video) or offer to escalate
-        setConversationState('asking_for_evidence')
+        // Directly ask for contact info to escalate
+        setConversationState('asking_contact_info')
         setMessages(prev => [...prev, { 
           role: 'bot', 
-          content: "Tôi hiểu rồi. Để hỗ trợ tốt hơn:\n\n📸 **Bạn có thể gửi ảnh/video:**\n- Chụp màn hình báo lỗi trên App (Ecovacs/Xiaomi/Roborock)\n- Quay video tình trạng lỗi hiện tại\n\n🔧 **Hoặc nhắn \"cần kỹ thuật\"** để tôi chuyển bộ phận kỹ thuật hỗ trợ trực tiếp." 
+          content: "Tôi hiểu rồi. Để bộ phận kỹ thuật liên hệ hỗ trợ trực tiếp, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" 
         }])
         return
       } else {
