@@ -1,0 +1,19 @@
+[2026-02-09T07:31:00.373Z] Internal Error: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+[2026-02-09T07:32:04.796Z] [Search API] Query: "Robot bi ket banh"
+[2026-02-09T07:32:04.798Z] [Search API] DB Search found 0 solutions.
+[2026-02-09T07:32:04.798Z] [Search API] AI Enabled: true
+[2026-02-09T07:32:04.799Z] Initializing Gemini model...
+[2026-02-09T07:32:04.799Z] [Search API] Sending prompt to Gemini...
+[2026-02-09T07:32:04.986Z] AI Generation Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2026-02-09T07:43:05.104Z] [Search API] Query: "Robot bi ket banh"
+[2026-02-09T07:43:05.106Z] [Search API] DB Search found 0 solutions.
+[2026-02-09T07:43:05.106Z] [Search API] AI Enabled: true
+[2026-02-09T07:43:05.107Z] Initializing Gemini model...
+[2026-02-09T07:43:05.107Z] [Search API] Sending prompt to Gemini...
+[2026-02-09T07:43:05.719Z] AI Generation Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[2026-02-09T08:05:00.710Z] [Search API] Query: "Robot bi ket banh"
+[2026-02-09T08:05:00.712Z] [Search API] DB Search found 0 solutions.
+[2026-02-09T08:05:00.713Z] [Search API] AI Enabled: true
+[2026-02-09T08:05:00.714Z] Initializing Gemini model...
+[2026-02-09T08:05:00.714Z] [Search API] Sending prompt to Gemini...
+[2026-02-09T08:05:12.831Z] [Search API] Gemini response received.

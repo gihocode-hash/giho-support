@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Solution {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  keywords    String   // Comma separated keywords for search
+  videoUrl    String?  // Can be a local path or external URL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Ticket {
+  id              String   @id @default(cuid())
+  customerName    String?  // Optional if anonymous
+  phone           String?  // Customer phone number
+  description     String
+  fileUrl         String?  // URL to uploaded image/video
+  fileType        String?  // File type: 'image' or 'video'
+  status          String   @default("OPEN") // OPEN, RESOLVED, ESCALATED
+  warranty        String?  // Warranty status: ACTIVE, EXPIRED, UNKNOWN
+  warrantyDetails String?  // JSON string with product details from warranty check
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
