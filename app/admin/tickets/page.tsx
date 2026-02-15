@@ -32,8 +32,14 @@ export default function TicketsPage() {
         fetch('/api/tickets/list')
             .then(res => res.json())
             .then(data => {
-                setTickets(data.tickets)
-                setFilteredTickets(data.tickets)
+                const ticketList = data.tickets || []
+                setTickets(ticketList)
+                setFilteredTickets(ticketList)
+            })
+            .catch(err => {
+                console.error('Failed to fetch tickets:', err)
+                setTickets([])
+                setFilteredTickets([])
             })
     }, [])
 
