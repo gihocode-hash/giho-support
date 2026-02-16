@@ -1,7 +1,8 @@
 'use client'
 
-import Link from "next/link"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { LayoutDashboard, BookOpen, MessageSquare, Settings, Home, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -11,6 +12,21 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     const router = useRouter()
+
+    useEffect(() => {
+        // Check authentication on mount
+        const checkAuth = async () => {
+            try {
+                const res = await fetch('/api/admin/check')
+                if (!res.ok) {
+                    router.push('/admin/login')
+                }
+            } catch (e) {
+                router.push('/admin/login')
+            }
+        }
+        checkAuth()
+    }, [router])
 
     const handleLogout = async () => {
         try {
