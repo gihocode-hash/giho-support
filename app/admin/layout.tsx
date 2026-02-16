@@ -1,11 +1,27 @@
+'use client'
+
 import Link from "next/link"
-import { LayoutDashboard, BookOpen, MessageSquare, Settings, Home } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { LayoutDashboard, BookOpen, MessageSquare, Settings, Home, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const router = useRouter()
+
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/admin/logout', { method: 'POST' })
+            router.push('/admin/login')
+            router.refresh()
+        } catch (e) {
+            console.error('Logout error:', e)
+        }
+    }
+
     return (
         <div className="flex h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
             {/* Sidebar */}
@@ -54,8 +70,16 @@ export default function AdminLayout({
                     </Link>
                 </nav>
 
-                {/* Footer */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-blue-100">
+                {/* Footer with Logout */}
+                <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-blue-100 space-y-3">
+                    <Button 
+                        onClick={handleLogout}
+                        variant="outline"
+                        className="w-full rounded-[40px] border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 italic"
+                    >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Đăng xuất
+                    </Button>
                     <p className="text-xs text-slate-400 italic text-center">GIHO Smart Home © 2026</p>
                 </div>
             </aside>
