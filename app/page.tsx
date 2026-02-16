@@ -11,7 +11,7 @@ type ConversationState = 'normal' | 'ai_suggested' | 'asking_for_evidence' | 'as
 
 export default function Home() {
   const [messages, setMessages] = useState<{ role: 'bot' | 'user', content: string, file?: { url: string, type: 'image' | 'video' } }[]>([
-    { role: 'bot', content: "Xin chào! Tôi là trợ lý ảo GIHO. Bạn đang gặp sự cố gì với Robot? Hãy mô tả lỗi hoặc gửi video/hình ảnh cho tôi." }
+    { role: 'bot', content: "Xin chào! Đây là bộ phận hỗ trợ kỹ thuật GIHO TECH. Bạn đang gặp sự cố gì với Robot? Hãy mô tả lỗi hoặc gửi video/hình ảnh cho tôi." }
   ])
   const [input, setInput] = useState("")
   const [conversationState, setConversationState] = useState<ConversationState>('normal')
@@ -391,13 +391,12 @@ export default function Home() {
         </Button>
       </Link>
 
-      <Card className="w-full max-w-lg h-[600px] flex flex-col shadow-2xl bg-white/80 backdrop-blur-sm border-blue-100 rounded-[40px] overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-6 w-6" />
-            <span className="italic">GIHO Support Center</span>
+      <Card className="w-full max-w-2xl h-[700px] flex flex-col shadow-2xl bg-white/80 backdrop-blur-sm border-blue-100 rounded-[40px] overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-center py-6">
+          <CardTitle className="text-2xl font-bold">
+            HỖ TRỢ KỸ THUẬT
           </CardTitle>
-          <p className="text-xs text-white/80 italic">AI-Powered Technical Support</p>
+          <p className="text-sm text-white/80 mt-1">AI-Powered Technical Support</p>
         </CardHeader>
 
         <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">

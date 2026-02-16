@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { sendTelegramNotification } from '@/lib/telegram'
 
 const prisma = new PrismaClient()
 
@@ -110,6 +111,34 @@ export async function POST(request: NextRequest) {
         warrantyDetails: warrantyDetails
       }
     })
+
+    // Send Telegram notification
+    try {
+      const warrantyText = warrantyStatus === 'ACTIVE' ? '✅ Còn bảo hành' : 
+                          warrantyStatus === 'EXPIRED' ? '⚠️ Hết bảo hành' : 
+                          '❓ Chưa xác định'
+      
+      const message = `
+🆕 <b>YÊU CẦU HỖ TRỢ MỚI</b>
+
+👤 <b>Khách hàng:</b> ${ticket.customerName}
+📞 <b>SĐT:</b> ${ticket.phone || 'Không có'}
+🛡️ <b>Bảo hành:</b> ${warrantyText}
+
+📝 <b>Mô tả:</b>
+${ticket.description}
+
+🆔 <b>Mã ticket:</b> #${ticket.id.slice(-8)}
+⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}
+
+🔗 <a href="https://support.giho.vn/admin/tickets/${ticket.id}">Xem chi tiết</a>
+      `.trim()
+      
+      await sendTelegramNotification(message)
+    } catch (telegramError) {
+      console.error('Failed to send Telegram notification:', telegramError)
+      // Don't fail the ticket creation if Telegram fails
+    }
 
     return NextResponse.json({ 
       success: true, 

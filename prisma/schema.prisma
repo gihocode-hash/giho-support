@@ -30,3 +30,18 @@ model Ticket {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model Settings {
+  id                    String   @id @default(cuid())
+  // Telegram Notifications
+  telegramBotToken      String?
+  telegramChatId        String?
+  notifyOnNewTicket     Boolean  @default(true)
+  notifyDailyReport     Boolean  @default(false)
+  // Company Info
+  companyName           String   @default("GIHO Smart Home")
+  supportPhone          String?
+  workingHours          String   @default("8:00 - 17:00 (Thứ 2 - Thứ 6)")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
