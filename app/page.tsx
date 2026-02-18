@@ -281,12 +281,22 @@ export default function Home() {
       const negativeKeywords = ['vẫn không', 'vẫn ko', 'vẫn k ', 'vẫn lỗi', 'vẫn bị', 'không được', 'ko được', 'ko dc', 'k dc', 'vẫn chưa', 'chưa được', 'không khắc phục']
       const isNegative = negativeKeywords.some(kw => userMsg.toLowerCase().includes(kw))
 
-      if (uploadedFile && isNegative) {
-        setConversationState('asking_contact_info')
-        setMessages(prev => [...prev, {
-          role: 'bot',
-          content: "Tôi hiểu rồi. Vấn đề này cần kỹ thuật viên kiểm tra trực tiếp.\n\nVui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567"
-        }])
+      if (isNegative) {
+        if (uploadedFile) {
+          // Đã có ảnh/video rồi mà vẫn không được → chuyển kỹ thuật viên
+          setConversationState('asking_contact_info')
+          setMessages(prev => [...prev, {
+            role: 'bot',
+            content: "Tôi hiểu rồi. Vấn đề này cần kỹ thuật viên kiểm tra trực tiếp.\n\nVui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567"
+          }])
+        } else {
+          // Chưa có ảnh/video → xin ảnh/video để phân tích thêm
+          setConversationState('asking_for_evidence')
+          setMessages(prev => [...prev, {
+            role: 'bot',
+            content: "Tôi hiểu rồi, để hỗ trợ chính xác hơn bạn có thể gửi cho tôi:\n\n📱 **Ảnh chụp màn hình app** (Ecovacs / Xiaomi / Roborock...) hiển thị thông báo lỗi\n🎥 **Hoặc video** quay lại tình trạng robot đang gặp phải\n\nNhấn nút 📎 bên dưới để đính kèm nhé!"
+          }])
+        }
         return
       }
 
@@ -308,9 +318,9 @@ ${hasEvidence ? '⚠️ Khách đã gửi ảnh/video rồi. TUYỆT ĐỐI khô
 
 CÁCH XỬ LÝ:
 - Nếu khách hỏi thêm hoặc cung cấp thêm thông tin mới → Đưa ra giải pháp cụ thể tiếp theo dựa trên thông tin đó
-- Nếu khách nói vẫn không được → Đưa ra MỘT giải pháp KHÁC cụ thể hơn, không lặp lại giải pháp cũ
+- Nếu khách hỏi về vấn đề khác → Trả lời vấn đề mới đó
 - Nếu khách nói đã ok/xong/cảm ơn → Trả lời ngắn: "Tuyệt vời! Rất vui vì đã giúp được bạn."
-- Nếu không còn giải pháp khác → Nói: "Tôi đã hết giải pháp có thể hướng dẫn từ xa. Cần kỹ thuật viên kiểm tra trực tiếp."
+- Nếu không còn giải pháp text nào khác → Nói: "Tôi đã hết giải pháp có thể hướng dẫn từ xa. Cần kỹ thuật viên kiểm tra trực tiếp."
 
 QUY TẮC: Trả lời ngắn gọn, thực tế. KHÔNG lặp lại những gì đã nói. Mỗi câu trả lời phải có thông tin mới.`
 
