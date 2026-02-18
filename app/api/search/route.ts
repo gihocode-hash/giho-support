@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
+import { callChatGPT } from "@/lib/openai"
 
 
 const prisma = new PrismaClient()
@@ -156,7 +157,6 @@ export async function POST(req: NextRequest) {
                 // Try ChatGPT as fallback
                 try {
                     log("[Search API] AI failed, trying ChatGPT fallback...");
-                    const { callChatGPT } = await import("@/lib/openai");
 
                     const chatGPTPrompt = `
                     Bạn là kỹ thuật viên chuyên sửa robot hút bụi GIHO với 10 năm kinh nghiệm.
