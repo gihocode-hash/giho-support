@@ -126,7 +126,7 @@ export default function Home() {
           setConversationState('ai_suggested')
           setMessages(prev => [
             ...prev.slice(0, -1),
-            { role: 'bot', content: `Dựa trên ${type === 'image' ? 'ảnh' : 'video'} bạn gửi:\n\n${aiSolution.description}\n\n---\n\n💬 Bạn thử làm theo hướng dẫn này nhé! Nếu vẫn không được, hãy cho tôi biết.` }
+            { role: 'bot', content: aiSolution.description }
           ])
         } else {
           // Can't analyze, escalate to technician
@@ -460,7 +460,7 @@ QUY TẮC: Trả lời ngắn gọn, thực tế. KHÔNG lặp lại những gì
           setConversationState('ai_suggested')
           setMessages(prev => [
             ...prev.slice(0, -1),
-            { role: 'bot', content: `${aiSolution.description}\n\n---\n\n💬 Bạn thử làm theo hướng dẫn trên nhé! Nếu vẫn không được, hãy cho tôi biết.` }
+            { role: 'bot', content: aiSolution.description }
           ])
         } else if (data.solutions[0].id === 'need-technician') {
           // Both AIs failed, escalate to technician

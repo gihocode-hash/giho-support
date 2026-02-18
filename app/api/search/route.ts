@@ -59,47 +59,17 @@ export async function POST(req: NextRequest) {
                 // Using Gemini 3.0 Flash - supports multimodal
                 const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-                const textPrompt = `
-                Bạn là kỹ thuật viên chuyên sửa robot hút bụi GIHO với 10 năm kinh nghiệm.
-                
-                NGỮ CẢNH CUỘC TRÒ CHUYỆN:
-                ${query}
-                
-                ${fileData ? `\nKHÁCH HÀNG ĐÃ GỬI ${fileType === 'image' ? 'ẢNH' : 'VIDEO'}:
-                - Hãy quan sát KỸ LƯỠNG ${fileType === 'image' ? 'ảnh' : 'video'} này
-                - Nhìn vào: đèn LED (màu gì, nháy hay sáng liên tục), màn hình hiển thị gì, vị trí robot, trạng thái bánh xe, cảm biến...
-                - MÔ TẢ CỤ THỂ những gì bạn thấy trong ${fileType === 'image' ? 'ảnh' : 'video'}
-                - Đừng đưa ra giải pháp chung chung như "kiểm tra nguồn điện", hãy dựa vào CHÍNH XÁC những gì trong ${fileType === 'image' ? 'ảnh' : 'video'}
-                ` : ''}
-                
-                NHIỆM VỤ CỦA BẠN:
-                1. NẾU CHƯA RÕ VẤN ĐỀ: Hỏi lại khách hàng cụ thể (VD: "Đèn nháy màu gì?", "Lỗi xảy ra lúc nào - khi sạc hay khi đang chạy?")
-                2. NẾU ĐÃ RÕ: Chẩn đoán CHÍNH XÁC dựa trên triệu chứng → Đưa giải pháp CỤ THỂ
-                
-                CÁCH TRẢ LỜI:
-                - Nói chuyện TỰ NHIÊN như kỹ thuật viên thực tế, KHÔNG máy móc
-                - Đừng liệt kê danh sách dài, hãy hỏi hoặc đưa ra 1-2 giải pháp CỤ THỂ NHẤT
-                - Sử dụng gạch đầu dòng (-) nếu cần liệt kê
-                - Xuống dòng rõ ràng giữa các ý
-                - BẮT ĐẦU BẰNG việc mô tả những gì bạn thấy (nếu có ảnh/video)
-                
-                VÍ DỤ CÁCH TRẢ LỜI TỐT:
-                "Tôi thấy trong ảnh đèn LED đang nháy đỏ liên tục và bánh xe bên phải bị kẹt. Đây là dấu hiệu bánh xe gặp vật cản.
-                
-                Bạn thử làm theo:
-                - Tắt robot, lật ngửa lên
-                - Kiểm tra xem có tóc/dây quấn vào bánh xe phải không
-                - Dùng kéo cắt sợi tóc ra, sau đó khởi động lại
-                
-                Làm xong báo tôi nhé!"
-                
-                TRÁNH TRẢ LỜI KIỂU NÀY (máy móc, chung chung):
-                "Dựa vào thông tin bạn cung cấp:
-                - Nguyên nhân: Có thể do nguồn điện, cảm biến, hoặc bánh xe
-                - Giải pháp 1: Kiểm tra nguồn
-                - Giải pháp 2: Reset robot
-                - Giải pháp 3: Liên hệ bảo hành"
-                `;
+                const textPrompt = `Bạn là kỹ thuật viên robot GIHO. Trả lời NGẮN GỌN, tự nhiên như nhắn tin.
+
+${fileData ? `Khách gửi ${fileType === 'image' ? 'ảnh' : 'video'}. Mô tả ngắn những gì thấy rồi đưa giải pháp cụ thể ngay.` : ''}
+
+Khách: "${query}"
+
+Quy tắc:
+- Chưa rõ vấn đề: hỏi ĐỘT NHIÊN 1 câu ngắn nhất có thể (VD: "Đèn nháy màu gì?")
+- Đã rõ: đưa giải pháp ngay, tối đa 3 bước
+- KHÔNG chào hỏi dài dòng, KHÔNG giải thích lan man
+- KHÔNG hỏi nhiều câu một lúc`;
 
                 log("[Search API] Sending prompt to Gemini...");
 
