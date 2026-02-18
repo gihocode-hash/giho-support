@@ -152,8 +152,54 @@ export async function POST(req: NextRequest) {
 
             } catch (aiError: any) {
                 log(`AI Generation Error: ${aiError?.message || aiError}`);
-                // Fallback to empty if AI fails
-                return NextResponse.json({ solutions: [] })
+
+                // Try ChatGPT as fallback
+                try {
+                    log("[Search API] AI failed, trying ChatGPT fallback...");
+                    const { callChatGPT } = await import("@/lib/openai");
+
+                    const chatGPTPrompt = `
+                    Bạn là kỹ thuật viên chuyên sửa robot hút bụi GIHO với 10 năm kinh nghiệm.
+                    
+                    NGỮ CẢNH CUỘC TRÒ CHUYỆN:
+                    ${query}
+                    
+                    NHIỆM VỤ CỦA BẠN:
+                    1. NẾU CHƯA RÕ VẤN ĐỀ: Hỏi lại khách hàng cụ thể
+                    2. NẾU ĐÃ RÕ: Chẩn đoán CHÍNH XÁC dựa trên triệu chứng → Đưa giải pháp CỤ THỂ
+                    
+                    Trả lời bằng tiếng Việt, ngắn gọn, thân thiện.
+                    `;
+
+                    const chatGPTResponse = await callChatGPT(chatGPTPrompt, fileData, fileType);
+                    log("[Search API] ChatGPT response received.");
+
+                    return NextResponse.json({
+                        solutions: [{
+                            id: 'ai-generated',
+                            title: fileData ? '🤖 Phân tích từ AI (Dựa trên ảnh/video)' : '💡 Gợi ý từ AI (Phân tích tự động)',
+                            description: chatGPTResponse,
+                            videoUrl: null,
+                            keywords: 'ai, auto-generated, chatgpt',
+                            updatedAt: new Date(),
+                            createdAt: new Date()
+                        }]
+                    });
+                } catch (chatGPTError: any) {
+                    log(`ChatGPT also failed: ${chatGPTError?.message || chatGPTError}`);
+                    // Both AI failed, escalate to technician
+                    return NextResponse.json({
+                        solutions: [{
+                            id: 'need-technician',
+                            title: 'Cần kỹ thuật viên hỗ trợ',
+                            description: 'Hệ thống AI tạm thời không thể xử lý yêu cầu của bạn.',
+                            videoUrl: null,
+                            keywords: 'escalate, technician',
+                            updatedAt: new Date(),
+                            createdAt: new Date()
+                        }]
+                    });
+                }
             }
         }
 

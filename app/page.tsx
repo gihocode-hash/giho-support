@@ -355,6 +355,14 @@ export default function Home() {
             ...prev.slice(0, -1),
             { role: 'bot', content: `${aiSolution.description}\n\n---\n\n💬 Bạn thử làm theo hướng dẫn trên nhé! Nếu vẫn không được, hãy cho tôi biết.` }
           ])
+        } else if (data.solutions[0].id === 'need-technician') {
+          // Both AIs failed, escalate to technician
+          customerIssue.current = userMsg
+          setConversationState('asking_contact_info')
+          setMessages(prev => [
+            ...prev.slice(0, -1),
+            { role: 'bot', content: "Xin lỗi, tôi chưa tìm thấy giải pháp hỗ trợ. Kỹ thuật viên sẽ hỗ trợ trực tiếp bạn!\n\nVui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" }
+          ])
         } else {
           // Normal DB solutions
           const solutionLinks = data.solutions.map((s: any) =>
