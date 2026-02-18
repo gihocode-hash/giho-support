@@ -127,7 +127,7 @@ export default function Home() {
           setConversationState('ai_suggested')
           setMessages(prev => [
             ...prev.slice(0, -1),
-            { role: 'bot', content: aiSolution.description }
+            { role: 'bot', content: isSolution(aiSolution.description) ? `${aiSolution.description}\n\nBạn thử làm xem nhé! Nếu vẫn không được, báo tôi biết.` : aiSolution.description }
           ])
         } else {
           // Can't analyze, escalate to technician
@@ -194,6 +194,13 @@ export default function Home() {
       console.error('Error creating ticket:', e)
       return null
     }
+  }
+
+  // Detect if AI response is a solution (has steps) or just a question
+  const isSolution = (text: string): boolean => {
+    const hassteps = /\b(1\.|bước 1|thứ nhất|đầu tiên|vệ sinh|tắt máy|lật ngửa|kiểm tra|khởi động|reset|nhấn|mở|đặt|lau|dùng|cắt|tháo)/i.test(text)
+    const isQuestion = text.trim().endsWith('?') && text.split('?').length <= 3
+    return hassteps && !isQuestion
   }
 
   const parseNameAndPhone = (input: string): { name: string, phone: string } | null => {
@@ -466,7 +473,7 @@ QUY TẮC: Trả lời ngắn gọn, thực tế. KHÔNG lặp lại những gì
           setConversationState('ai_suggested')
           setMessages(prev => [
             ...prev.slice(0, -1),
-            { role: 'bot', content: aiSolution.description }
+            { role: 'bot', content: isSolution(aiSolution.description) ? `${aiSolution.description}\n\nBạn thử làm xem nhé! Nếu vẫn không được, báo tôi biết.` : aiSolution.description }
           ])
         } else if (data.solutions[0].id === 'need-technician') {
           // Both AIs failed, escalate to technician
