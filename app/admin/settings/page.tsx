@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Globe, Check } from "lucide-react"
+import { Send, Globe, Check, Bot } from "lucide-react"
 
 type Settings = {
   telegramBotToken: string
@@ -15,6 +15,7 @@ type Settings = {
   companyName: string
   supportPhone: string
   workingHours: string
+  enableAiSearch: boolean
 }
 
 export default function SettingsPage() {
@@ -25,7 +26,8 @@ export default function SettingsPage() {
     notifyDailyReport: false,
     companyName: 'GIHO Smart Home',
     supportPhone: '',
-    workingHours: '8:00 - 17:00 (Thứ 2 - Thứ 6)'
+    workingHours: '8:00 - 17:00 (Thứ 2 - Thứ 6)',
+    enableAiSearch: true
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -47,7 +49,8 @@ export default function SettingsPage() {
           notifyDailyReport: data.settings.notifyDailyReport ?? false,
           companyName: data.settings.companyName || 'GIHO Smart Home',
           supportPhone: data.settings.supportPhone || '',
-          workingHours: data.settings.workingHours || '8:00 - 17:00 (Thứ 2 - Thứ 6)'
+          workingHours: data.settings.workingHours || '8:00 - 17:00 (Thứ 2 - Thứ 6)',
+          enableAiSearch: data.settings.enableAiSearch ?? true
         })
       }
     } catch (error) {
@@ -213,6 +216,46 @@ export default function SettingsPage() {
                 onChange={(e) => setSettings({...settings, workingHours: e.target.value})}
                 className="rounded-[40px] border-blue-200"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* AI Settings */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-blue-100 shadow-lg rounded-[40px] overflow-hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="w-5 h-5 text-emerald-500" />
+              <span className="italic font-bold">Cài Đặt AI</span>
+            </CardTitle>
+            <CardDescription className="italic">
+              Cấu hình AI hỗ trợ tự động (Gemini + ChatGPT backup)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="enableAiSearch"
+                className="rounded"
+                checked={settings.enableAiSearch}
+                onChange={(e) => setSettings({...settings, enableAiSearch: e.target.checked})}
+              />
+              <Label htmlFor="enableAiSearch" className="italic">Bật AI hỗ trợ tự động</Label>
+            </div>
+            <p className="text-sm text-slate-500 italic">
+              Khi bật, hệ thống sẽ dùng Gemini AI (và ChatGPT làm backup) để tự động trả lời khách hàng.
+            </p>
+
+            <div className="rounded-[20px] bg-blue-50 border border-blue-100 p-4 space-y-2">
+              <p className="text-sm font-medium italic text-blue-700">Trạng thái API Keys (cấu hình tại Vercel)</p>
+              <div className="flex items-center gap-2 text-sm italic">
+                <span className={`w-2 h-2 rounded-full ${process.env.NEXT_PUBLIC_GEMINI_CONFIGURED === 'true' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                <span className="text-slate-600">Gemini API Key: <strong>Cấu hình trong Vercel → Environment Variables → GEMINI_API_KEY</strong></span>
+              </div>
+              <div className="flex items-center gap-2 text-sm italic">
+                <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                <span className="text-slate-600">OpenAI API Key: <strong>Cấu hình trong Vercel → Environment Variables → OPENAI_API_KEY</strong></span>
+              </div>
             </div>
           </CardContent>
         </Card>

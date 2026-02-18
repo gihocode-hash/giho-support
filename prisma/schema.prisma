@@ -42,6 +42,8 @@ model Settings {
   companyName           String   @default("GIHO Smart Home")
   supportPhone          String?
   workingHours          String   @default("8:00 - 17:00 (Thứ 2 - Thứ 6)")
+  // AI Settings
+  enableAiSearch        Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 }

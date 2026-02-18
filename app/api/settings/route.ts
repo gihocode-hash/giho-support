@@ -43,6 +43,7 @@ export async function POST(req: Request) {
           companyName: data.companyName,
           supportPhone: data.supportPhone,
           workingHours: data.workingHours,
+          enableAiSearch: data.enableAiSearch,
         }
       })
     } else {
@@ -56,6 +57,7 @@ export async function POST(req: Request) {
           companyName: data.companyName,
           supportPhone: data.supportPhone,
           workingHours: data.workingHours,
+          enableAiSearch: data.enableAiSearch,
         }
       })
     }

@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
         }
 
         // 3. If NOT found or has file, use AI
-        const enableAI = process.env.ENABLE_AI_SEARCH === 'true';
+        const appSettings = await prisma.settings.findFirst()
+        const enableAI = appSettings?.enableAiSearch ?? (process.env.ENABLE_AI_SEARCH === 'true');
         log(`[Search API] AI Enabled: ${enableAI}`);
 
         if (enableAI) {
