@@ -4,8 +4,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Send, Paperclip, Bot, User, Settings } from "lucide-react"
-import Link from "next/link"
+import { Send, Paperclip, Bot, User } from "lucide-react"
 
 type ConversationState = 'normal' | 'ai_suggested' | 'asking_for_evidence' | 'asking_contact_info'
 
@@ -276,35 +275,102 @@ export default function Home() {
       return
     }
 
-    // Handle "vẫn không được" or similar negative responses
+    // Handle AI suggested state - let AI continue the conversation with context
     if (conversationState === 'ai_suggested') {
-      const negativeKeywords = [
-        'không được', 'ko được', 'ko dc', 'k dc', 'k được',
-        'vẫn lỗi', 'vẫn bị', 'vẫn ko', 'vẫn k', 'vẫn không', 'vẫn chưa',
-        'không khắc phục', 'không giải quyết', 'chưa được', 'chưa dc'
-      ]
-      const isNegativeResponse = negativeKeywords.some(keyword => userMsg.toLowerCase().includes(keyword))
+      // Send user response back to AI with full context for intelligent follow-up
+      setMessages(prev => [...prev, { role: 'bot', content: "Để tôi xem thêm..." }])
+      
+      try {
+        // Build conversation context
+        const conversationContext = `TÔI VỪA ĐƯA RA GIẢI PHÁP:
+${aiSuggestion.current}
 
-      if (isNegativeResponse) {
-        // Directly ask for contact info to escalate
+---
+
+KHÁCH HÀNG TRẢ LỜI:
+${userMsg}
+
+---
+
+NHIỆM VỤ: Hãy phân tích câu trả lời của khách hàng và quyết định:
+1. NẾU khách đang trả lời câu hỏi của bạn hoặc bổ sung thông tin → Tiếp tục hỗ trợ, đưa giải pháp cụ thể hơn
+2. NẾU khách nói "vẫn không được" / "vẫn lỗi" → Trả lời: "Tôi hiểu rồi. Hãy cho tôi thêm thông tin hoặc ảnh/video để phân tích kỹ hơn."
+3. NẾU khách xác nhận đã giải quyết được (đã ok, đã xong, cảm ơn) → Trả lời: "Tuyệt vời! Rất vui vì đã giúp được bạn."
+
+QUAN TRỌNG: Đọc kỹ câu trả lời của khách, ĐỪNG vội kết luận!`
+
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: conversationContext }),
+          signal: AbortSignal.timeout(120000) // Timeout sau 2 phút
+        })
+        const data = await res.json()
+
+        if (data.solutions && data.solutions.length > 0 && data.solutions[0].id === 'ai-generated') {
+          const aiResponse = data.solutions[0].description
+          
+          // Check if AI determined the issue is resolved
+          const resolvedIndicators = ['tuyệt vời', 'rất vui', 'đã giúp được']
+          const isResolved = resolvedIndicators.some(indicator => 
+            aiResponse.toLowerCase().includes(indicator)
+          )
+          
+          // Check if AI suggests escalation
+          const escalationIndicators = ['chụp ảnh', 'gửi video', 'ảnh/video', 'hình ảnh']
+          const needsEscalation = escalationIndicators.some(indicator => 
+            aiResponse.toLowerCase().includes(indicator)
+          )
+          
+          if (isResolved) {
+            // Issue resolved
+            setConversationState('normal')
+            customerIssue.current = ''
+            aiSuggestion.current = ''
+            setUploadedFile(null)
+            setMessages(prev => [
+              ...prev.slice(0, -1),
+              { role: 'bot', content: aiResponse }
+            ])
+          } else if (needsEscalation) {
+            // AI asking for more evidence or suggests escalation
+            setConversationState('asking_for_evidence')
+            setMessages(prev => [
+              ...prev.slice(0, -1),
+              { role: 'bot', content: aiResponse + '\n\n📸 Bạn có thể gửi ảnh/video bằng nút đính kèm bên dưới.' }
+            ])
+          } else {
+            // AI continues conversation with more details
+            aiSuggestion.current = aiResponse
+            setMessages(prev => [
+              ...prev.slice(0, -1),
+              { role: 'bot', content: aiResponse }
+            ])
+          }
+        } else {
+          // Fallback: can't process, ask for escalation
+          setConversationState('asking_contact_info')
+          setMessages(prev => [
+            ...prev.slice(0, -1),
+            { role: 'bot', content: "Để bộ phận kỹ thuật hỗ trợ trực tiếp, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" }
+          ])
+        }
+      } catch (error) {
+        console.error('Error continuing AI conversation:', error)
+        
+        // Check if it's a timeout error
+        const isTimeout = error instanceof Error && error.name === 'TimeoutError'
+        
         setConversationState('asking_contact_info')
-        setMessages(prev => [...prev, { 
-          role: 'bot', 
-          content: "Tôi hiểu rồi. Để bộ phận kỹ thuật liên hệ hỗ trợ trực tiếp, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" 
-        }])
-        return
-      } else {
-        // Assume issue is resolved, reset conversation
-        setConversationState('normal')
-        customerIssue.current = ''
-        aiSuggestion.current = ''
-        setUploadedFile(null)
-        setMessages(prev => [...prev, { 
-          role: 'bot', 
-          content: "Tuyệt vời! 🎉 Rất vui vì đã giúp được bạn. Nếu có vấn đề gì khác, cứ hỏi tôi nhé!" 
-        }])
-        return
+        setMessages(prev => [
+          ...prev.slice(0, -1),
+          { role: 'bot', content: isTimeout 
+            ? "Xin lỗi, tôi vẫn chưa rõ lỗi bạn gặp phải. Đội ngũ kỹ thuật viên sẽ hỗ trợ bạn, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567"
+            : "Có lỗi xảy ra. Để kỹ thuật viên hỗ trợ, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" 
+          }
+        ])
       }
+      return
     }
 
     // Handle asking for evidence (after AI suggested but user said still not working)
@@ -338,7 +404,8 @@ export default function Home() {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: userMsg })
+        body: JSON.stringify({ query: userMsg }),
+        signal: AbortSignal.timeout(120000) // Timeout sau 2 phút
       })
       const data = await res.json()
 
@@ -384,21 +451,24 @@ export default function Home() {
         setConversationState('asking_contact_info')
       }
     } catch (e) {
+      const isTimeout = e instanceof Error && e.name === 'TimeoutError'
+      
       setMessages(prev => [
         ...prev.slice(0, -1),
-        { role: 'bot', content: "Có lỗi xảy ra khi kết nối hệ thống." }
+        { role: 'bot', content: isTimeout
+          ? "Xin lỗi, tôi vẫn chưa rõ lỗi bạn gặp phải. Đội ngũ kỹ thuật viên sẽ hỗ trợ bạn, vui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567"
+          : "Có lỗi xảy ra khi kết nối hệ thống. Vui lòng thử lại hoặc liên hệ kỹ thuật viên." 
+        }
       ])
+      
+      if (isTimeout) {
+        setConversationState('asking_contact_info')
+      }
     }
   }
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 items-center justify-center p-4">
-      <Link href="/admin" className="absolute top-4 right-4">
-        <Button variant="outline" size="icon" className="rounded-[40px] bg-white/80 backdrop-blur-sm border-blue-200 hover:bg-blue-50">
-          <Settings className="h-4 w-4" />
-        </Button>
-      </Link>
-
       <Card className="w-full max-w-2xl h-[700px] flex flex-col shadow-2xl bg-white/80 backdrop-blur-sm border-blue-100 rounded-[40px] overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-center py-6">
           <CardTitle className="text-2xl font-bold">

@@ -101,37 +101,27 @@ export async function POST(req: NextRequest) {
                 `;
 
                 log("[Search API] Sending prompt to Gemini...");
-                
-                let result;
-                if (fileData && fileType) {
-                    // Multimodal request with image/video
-                    const parts: any[] = [
-                        { text: textPrompt }
-                    ];
 
-                    // Add inline data for image or video
-                    if (fileType === 'image') {
-                        parts.push({
-                            inlineData: {
-                                mimeType: fileData.mimeType,
-                                data: fileData.base64
-                            }
-                        });
-                    } else if (fileType === 'video') {
-                        parts.push({
-                            inlineData: {
-                                mimeType: fileData.mimeType,
-                                data: fileData.base64
-                            }
-                        });
+                // Add timeout for Gemini (45 seconds)
+                const geminiPromise = (async () => {
+                    if (fileData && fileType) {
+                        const parts: any[] = [{ text: textPrompt }];
+                        if (fileType === 'image') {
+                            parts.push({ inlineData: { mimeType: fileData.mimeType, data: fileData.base64 } });
+                        } else if (fileType === 'video') {
+                            parts.push({ inlineData: { mimeType: fileData.mimeType, data: fileData.base64 } });
+                        }
+                        return await model.generateContent(parts);
+                    } else {
+                        return await model.generateContent(textPrompt);
                     }
+                })();
 
-                    result = await model.generateContent(parts);
-                } else {
-                    // Text-only request
-                    result = await model.generateContent(textPrompt);
-                }
-                
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Gemini timeout after 45 seconds')), 45000);
+                });
+
+                const result = await Promise.race([geminiPromise, timeoutPromise]) as any;
                 const response = result.response;
                 const text = response.text();
                 log("[Search API] Gemini response received.");
