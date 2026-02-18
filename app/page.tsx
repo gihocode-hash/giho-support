@@ -296,24 +296,23 @@ export default function Home() {
       try {
         // Build conversation context
         const hasEvidence = uploadedFile !== null
-        const conversationContext = `TÔI VỪA ĐƯA RA GIẢI PHÁP:
+        const conversationContext = `Bạn là kỹ thuật viên robot hút bụi GIHO. Đây là cuộc hội thoại đang diễn ra:
+
+GIẢI PHÁP BẠN VỪA ĐƯA RA:
 ${aiSuggestion.current}
 
----
+KHÁCH HÀNG VỪA NHẮN:
+"${userMsg}"
 
-KHÁCH HÀNG TRẢ LỜI:
-${userMsg}
+${hasEvidence ? '⚠️ Khách đã gửi ảnh/video rồi. TUYỆT ĐỐI không yêu cầu gửi thêm ảnh/video nữa.' : ''}
 
-${hasEvidence ? '(Lưu ý: Khách hàng ĐÃ GỬI ảnh/video rồi, KHÔNG yêu cầu thêm ảnh/video nữa)' : ''}
+CÁCH XỬ LÝ:
+- Nếu khách hỏi thêm hoặc cung cấp thêm thông tin mới → Đưa ra giải pháp cụ thể tiếp theo dựa trên thông tin đó
+- Nếu khách nói vẫn không được → Đưa ra MỘT giải pháp KHÁC cụ thể hơn, không lặp lại giải pháp cũ
+- Nếu khách nói đã ok/xong/cảm ơn → Trả lời ngắn: "Tuyệt vời! Rất vui vì đã giúp được bạn."
+- Nếu không còn giải pháp khác → Nói: "Tôi đã hết giải pháp có thể hướng dẫn từ xa. Cần kỹ thuật viên kiểm tra trực tiếp."
 
----
-
-NHIỆM VỤ: Hãy phân tích câu trả lời của khách hàng và quyết định:
-1. NẾU khách đang bổ sung thông tin hoặc hỏi thêm → Tiếp tục hỗ trợ, đưa giải pháp cụ thể hơn
-2. NẾU khách nói "vẫn không được" / "vẫn lỗi" → Thử đưa ra 1 giải pháp khác cụ thể hơn (KHÔNG hỏi lại ảnh/video nếu đã có)
-3. NẾU khách xác nhận đã giải quyết được (đã ok, đã xong, cảm ơn) → Trả lời: "Tuyệt vời! Rất vui vì đã giúp được bạn."
-
-QUAN TRỌNG: ĐỪNG lặp lại câu hỏi đã hỏi rồi. Mỗi lượt phải đưa ra thông tin MỚI hoặc giải pháp khác.`
+QUY TẮC: Trả lời ngắn gọn, thực tế. KHÔNG lặp lại những gì đã nói. Mỗi câu trả lời phải có thông tin mới.`
 
         const res = await fetch('/api/search', {
           method: 'POST',
@@ -332,9 +331,15 @@ QUAN TRỌNG: ĐỪNG lặp lại câu hỏi đã hỏi rồi. Mỗi lượt ph�
             aiResponse.toLowerCase().includes(indicator)
           )
           
-          // Check if AI suggests escalation
+          // Check if AI says it has no more remote solutions → escalate to technician
+          const noMoreSolutionsIndicators = ['hết giải pháp', 'không còn giải pháp', 'cần kỹ thuật viên kiểm tra trực tiếp', 'kiểm tra trực tiếp']
+          const noMoreSolutions = noMoreSolutionsIndicators.some(indicator =>
+            aiResponse.toLowerCase().includes(indicator)
+          )
+
+          // Check if AI suggests sending photo/video
           const escalationIndicators = ['chụp ảnh', 'gửi video', 'ảnh/video', 'hình ảnh']
-          const needsEscalation = escalationIndicators.some(indicator => 
+          const needsEscalation = noMoreSolutions || escalationIndicators.some(indicator => 
             aiResponse.toLowerCase().includes(indicator)
           )
           
@@ -349,12 +354,21 @@ QUAN TRỌNG: ĐỪNG lặp lại câu hỏi đã hỏi rồi. Mỗi lượt ph�
               { role: 'bot', content: aiResponse }
             ])
           } else if (needsEscalation) {
-            // AI asking for more evidence or suggests escalation
-            setConversationState('asking_for_evidence')
-            setMessages(prev => [
-              ...prev.slice(0, -1),
-              { role: 'bot', content: aiResponse + '\n\n📸 Bạn có thể gửi ảnh/video bằng nút đính kèm bên dưới.' }
-            ])
+            if (uploadedFile) {
+              // Đã có file rồi mà AI vẫn hỏi thêm → chuyển kỹ thuật viên
+              setConversationState('asking_contact_info')
+              setMessages(prev => [
+                ...prev.slice(0, -1),
+                { role: 'bot', content: "Tôi hiểu rồi. Vấn đề này cần kỹ thuật viên kiểm tra trực tiếp.\n\nVui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567" }
+              ])
+            } else {
+              // Chưa có file → yêu cầu gửi ảnh/video
+              setConversationState('asking_for_evidence')
+              setMessages(prev => [
+                ...prev.slice(0, -1),
+                { role: 'bot', content: aiResponse + '\n\n📸 Bạn có thể gửi ảnh/video bằng nút đính kèm bên dưới.' }
+              ])
+            }
           } else {
             // AI continues conversation with more details
             aiSuggestion.current = aiResponse
