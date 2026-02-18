@@ -277,11 +277,25 @@ export default function Home() {
 
     // Handle AI suggested state - let AI continue the conversation with context
     if (conversationState === 'ai_suggested') {
+      // Nếu đã có file (ảnh/video) và khách báo vẫn không được → chuyển kỹ thuật luôn
+      const negativeKeywords = ['vẫn không', 'vẫn ko', 'vẫn k ', 'vẫn lỗi', 'vẫn bị', 'không được', 'ko được', 'ko dc', 'k dc', 'vẫn chưa', 'chưa được', 'không khắc phục']
+      const isNegative = negativeKeywords.some(kw => userMsg.toLowerCase().includes(kw))
+
+      if (uploadedFile && isNegative) {
+        setConversationState('asking_contact_info')
+        setMessages(prev => [...prev, {
+          role: 'bot',
+          content: "Tôi hiểu rồi. Vấn đề này cần kỹ thuật viên kiểm tra trực tiếp.\n\nVui lòng cung cấp:\n\n📝 Tên - Số điện thoại\n\nVí dụ: Nguyễn Văn A - 0901234567"
+        }])
+        return
+      }
+
       // Send user response back to AI with full context for intelligent follow-up
       setMessages(prev => [...prev, { role: 'bot', content: "Để tôi xem thêm..." }])
       
       try {
         // Build conversation context
+        const hasEvidence = uploadedFile !== null
         const conversationContext = `TÔI VỪA ĐƯA RA GIẢI PHÁP:
 ${aiSuggestion.current}
 
@@ -290,14 +304,16 @@ ${aiSuggestion.current}
 KHÁCH HÀNG TRẢ LỜI:
 ${userMsg}
 
+${hasEvidence ? '(Lưu ý: Khách hàng ĐÃ GỬI ảnh/video rồi, KHÔNG yêu cầu thêm ảnh/video nữa)' : ''}
+
 ---
 
 NHIỆM VỤ: Hãy phân tích câu trả lời của khách hàng và quyết định:
-1. NẾU khách đang trả lời câu hỏi của bạn hoặc bổ sung thông tin → Tiếp tục hỗ trợ, đưa giải pháp cụ thể hơn
-2. NẾU khách nói "vẫn không được" / "vẫn lỗi" → Trả lời: "Tôi hiểu rồi. Hãy cho tôi thêm thông tin hoặc ảnh/video để phân tích kỹ hơn."
+1. NẾU khách đang bổ sung thông tin hoặc hỏi thêm → Tiếp tục hỗ trợ, đưa giải pháp cụ thể hơn
+2. NẾU khách nói "vẫn không được" / "vẫn lỗi" → Thử đưa ra 1 giải pháp khác cụ thể hơn (KHÔNG hỏi lại ảnh/video nếu đã có)
 3. NẾU khách xác nhận đã giải quyết được (đã ok, đã xong, cảm ơn) → Trả lời: "Tuyệt vời! Rất vui vì đã giúp được bạn."
 
-QUAN TRỌNG: Đọc kỹ câu trả lời của khách, ĐỪNG vội kết luận!`
+QUAN TRỌNG: ĐỪNG lặp lại câu hỏi đã hỏi rồi. Mỗi lượt phải đưa ra thông tin MỚI hoặc giải pháp khác.`
 
         const res = await fetch('/api/search', {
           method: 'POST',
