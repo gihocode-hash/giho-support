@@ -59,17 +59,16 @@ export async function POST(req: NextRequest) {
                 // Using Gemini 3.0 Flash - supports multimodal
                 const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-                const textPrompt = `Bạn là kỹ thuật viên robot GIHO. Trả lời NGẮN GỌN, tự nhiên như nhắn tin.
+                const textPrompt = `Bạn là kỹ thuật viên robot GIHO. Trả lời NGẮN GỌN như nhắn tin, tối đa 3-4 dòng.
 
-${fileData ? `Khách gửi ${fileType === 'image' ? 'ảnh' : 'video'}. Mô tả ngắn những gì thấy rồi đưa giải pháp cụ thể ngay.` : ''}
+${fileData ? `Khách gửi ${fileType === 'image' ? 'ảnh' : 'video'}. Phân tích ngay và đưa giải pháp cụ thể.` : ''}
 
 Khách: "${query}"
 
 Quy tắc:
-- Chưa rõ vấn đề: hỏi ĐỘT NHIÊN 1 câu ngắn nhất có thể (VD: "Đèn nháy màu gì?")
-- Đã rõ: đưa giải pháp ngay, tối đa 3 bước
-- KHÔNG chào hỏi dài dòng, KHÔNG giải thích lan man
-- KHÔNG hỏi nhiều câu một lúc`;
+- Đã đủ thông tin: đưa giải pháp ngay (tối đa 3 bước ngắn)
+- Chưa đủ thông tin: hỏi 1 câu ngắn NHẤT, ưu tiên hỏi "Bạn có thể gửi ảnh/video không?" nếu chưa rõ
+- KHÔNG chào hỏi, KHÔNG giải thích dài dòng, KHÔNG hỏi nhiều câu cùng lúc`;
 
                 log("[Search API] Sending prompt to Gemini...");
 
