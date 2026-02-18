@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaClient } from "@prisma/client"
 import { callChatGPT } from "@/lib/openai"
+import { genAI } from "@/lib/gemini"
 
 
 const prisma = new PrismaClient()
@@ -48,9 +49,6 @@ export async function POST(req: NextRequest) {
 
         if (enableAI) {
             try {
-                // Import gemini lib
-                const { genAI } = await import("@/lib/gemini");
-
                 if (!genAI) {
                     log("Gemini API Key is missing.");
                     return NextResponse.json({ solutions: [] });
